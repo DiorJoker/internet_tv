@@ -238,7 +238,7 @@ INSERT INTO Episode (EpisodeID,SeasonNumber, EpisodeNumber, ProgramID, EpisodeNa
 VALUES (36,null, null, 10, '世田谷殺人事件', '悲しい事件が起きました', '02:00:00', '2023-01-06', 3020);
 
 INSERT INTO Episode (EpisodeID,SeasonNumber, EpisodeNumber, ProgramID, EpisodeName, Details, Duration, ReleaseDate, Viewers) 
-VALUES (37,null, null, 11, '練馬強盗事件', '巣推し悲しい事件', '02:00:00', '2023-01-06', 2000);
+VALUES (37,null, null, 11, '練馬強盗事件', '少し悲しい事件', '02:00:00', '2023-01-06', 2000);
 ```
 
 
@@ -286,8 +286,77 @@ VALUES (5, '2023-01-03', '09:00:00', 3, 300);
 
 
 
+# ステップ3
+
+## データ抽出クエリ
+
+1. よく見られているエピソードを知りたいです。エピソード視聴数トップ3のエピソードタイトルと視聴数を取得してください 
+
+```
+SELECT EpisodeName, Viewers
+FROM Episode
+ORDER BY Viewers DESC
+LIMIT 3;
+```
 
 
+2. よく見られているエピソードの番組情報やシーズン情報も合わせて知りたいです。エピソード視聴数トップ3の番組タイトル、シーズン数、エピソード数、エピソードタイトル、視聴数を取得してください 
+
+```
+SELECT EpisodeName,SeasonNumber,EpisodeNumber, Viewers 
+FROM Episode 
+ORDER BY Viewers DESC 
+LIMIT 3;
+```
+
+3.本日の番組表を表示するために、本日、どのチャンネルの、何時から、何の番組が放送されるのかを知りたいです。本日放送される全ての番組に対して、チャンネル名、放送開始時刻(日付+時間)、放送終了時刻、シーズン数、エピソード数、エピソードタイトル、エピソード詳細を取得してください。なお、番組の開始時刻が本日のものを本日方法される番組とみなすものとします 
+
+```
+SELECT
+    c.ChannelName,
+    p.TimeSlot AS StartTime,
+    CONCAT(p.Date, ' ', p.TimeSlot) AS StartTime,
+    DATE_ADD(p.TimeSlot, INTERVAL COALESCE(e.Duration, 0) HOUR) AS EndTime,
+    e.SeasonNumber,
+    e.EpisodeNumber,
+    e.EpisodeName,
+    e.Details
+FROM
+    Program p
+JOIN
+    Channel c ON p.ChannelID = c.ChannelID
+JOIN
+    Episode e ON p.EpisodeID = e.EpisodeID
+WHERE
+    DATE(e.ReleaseDate) = '2023-11-13';
+```
+
+
+
+4.ドラマというチャンネルがあったとして、ドラマのチャンネルの番組表を表示するために、本日から一週間分、何日の何時から何の番組が放送されるのかを知りたいです。ドラマのチャンネルに対して、放送開始時刻、放送終了時刻、シーズン数、エピソード数、エピソードタイトル、エピソード詳細を本日から一週間分取得してください 
+
+```
+SELECT
+    c.ChannelName,
+    p.TimeSlot AS StartTime,
+    CONCAT(p.Date, ' ', p.TimeSlot) AS StartTime,
+    DATE_ADD(p.TimeSlot, INTERVAL COALESCE(e.Duration, 0) HOUR) AS EndTime,
+    e.SeasonNumber,
+    e.EpisodeNumber,
+    e.EpisodeName,
+    e.Details
+FROM
+    Program p
+JOIN
+    Channel c ON p.ChannelID = c.ChannelID
+JOIN
+    Episode e ON p.EpisodeID = e.EpisodeID
+WHERE
+    DATE(e.ReleaseDate) BETWEEN '2023-01-01' AND '2023-01-07' && c.ChannelName = 'ドラマ';
+```
+
+
+*今後、advancedとRuby改善にも早急に取り掛かります。*
 
 
 
